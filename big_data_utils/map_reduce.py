@@ -8,42 +8,35 @@ import os
 from joblib import Parallel, delayed
 
 def mapreduce(
-    map_fn, 
-    reduce_fn, 
-    input_filename='', 
+    map_fn,    # takes a path, returns something
+    reduce_fn, # takes a list of mapper outputs, returns a reduced string
+    input_filename='',    # input filename (will be split)
+    input_re='',          # input re (grabs all matches)
     output_filename='',   # write all outputs to this file
-    input_re='', 
-    mirror_outputs=False,  # if true, write outputs for each input file
     split_lines=50000
 ):
     assert len(input_filename + input_re) > 0, 'must provide input file'
-    assert len(output_filename + output_re) > 0, 'must provide output file'
     
     n_cores = multiprocessing.cpu_count()    
-    paths = glob.glob(input_re) if input_re else [input_filename]
+    if input_re:
+        input_paths = glob.glob(input_re)
+    else:
+        cmd = 'split -l %s %s part_%s_' % (split_lines, path, i)
+        print 'SPLITTING with ', cmd
+        os.system(cmd)
+        input_paths = glob.glob('part_*')
 
-    results = []
-    for i, path in tqdm(enumerate(paths)):
-        print 'INFO: starting ', path
+    results = Parallel(n_jobs=n_cores)(
+        delayed(map_fn)(part) for part in tqdm(input_paths))
 
-        print 'SPLITTING...'
-        os.system('split -l %s part_%s_' % (path, i))
+    result_str = reduce_fn(results)
 
-        dir = os.path.dirname(path)
-        parts_re = os.path.join(dir, 'parts_*')
-        part_paths = glob.glob(parts_re)
+    # cleanup if we made splits
+    if len(input_re) == 0:
+        os.system('rm ' + ' '.join(input_paths))
 
-        # result = list of strings
-        result = Parallel(n_jobs=n_cores)(
-            delayed(map_fn)(part for part in tqdm(part_paths)))
-
-        if mirror_outputs:
-            with open(os.path.join(path, '.out'), 'w') as f:
-                f.write('\n'.join(result) + '\n')
-        else:
-            results += result
-
-    print 'DUMPING OUTPUT'
-    with open(output_filename, 'w') as f:
-        f.write('\n'.join(results) + '\n')
+    if output_filename:
+        print 'WRITING TO ', output_filename
+        with open(output_filename, 'w') as f:
+            f.write(result_str)
                 
