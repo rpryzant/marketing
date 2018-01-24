@@ -13,11 +13,11 @@ def mapreduce(
     input_filename='',    # input filename (will be split)
     input_re='',          # input re (grabs all matches)
     output_filename='',   # write all outputs to this file
-    split_lines=50000
+    split_lines=50000,
+    n_cores=16
 ):
     assert len(input_filename + input_re) > 0, 'must provide input file'
     
-    n_cores = multiprocessing.cpu_count()    
     if input_re:
         input_paths = glob.glob(input_re)
     else:

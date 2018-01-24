@@ -3,6 +3,7 @@ from collections import defaultdict
 
 
 def map_fn(path):
+#    return eval(open(path + '.out').read().strip())
     out = defaultdict(int)
     for l in open(path):
         parts = l.strip().split("\t")
@@ -26,7 +27,8 @@ def reduce_fn(result_list):
 map_reduce.mapreduce(
     map_fn=map_fn,
     reduce_fn=reduce_fn,
-    input_re='/Users/rpryzant/Desktop/test/*.tsv',
+    input_re='/scr/rpryzant/marketing/rakuten/data/products_tsv/*.tsv',
 #    input_re='/Volumes/datasets/rakuten_dump/merchandize_data/products_tsv/*.tsv',
-    output_filename='/Users/rpryzant/Desktop/test/out'
+    output_filename='/scr/rpryzant/marketing/rakuten/categories',
+    n_cores=16
 )
