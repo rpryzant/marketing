@@ -6,7 +6,7 @@ import re
 import Mykytea
 
 descriptions_file = '/Users/rpryzant/Documents/rakuten_data/clothing_products'
-out_file = '/Users/rpryzant/Documents/rakuten_data/clothing_products_tokenized'
+out_file = '/Users/rpryzant/Documents/rakuten_data/clothing_products.tok'
 
 def kytea_tokenize(s):
     return ' '.join(list(mk.getWS(s)))
